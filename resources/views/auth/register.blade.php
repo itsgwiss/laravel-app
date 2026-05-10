@@ -2,12 +2,21 @@
 @section('title', 'Register — Grace')
 
 @section('content')
-<div class="auth-split">
-    <div class="auth-brand-panel">
-        <div class="brand" style="font-size:2rem">🐝 Grace</div>
-        <div class="tagline">Join the<br><em>hive.</em></div>
-        <p>Create your account and get access to all Grace tools — OTP, mailbox, and AI assistant.</p>
+<div class="brand-block">
+
+    <img src="{{ asset('images/open-enrollment.gif') }}" class="brand-gif" alt="Grace">
+
+    <div class="brand-text">
+
+        <h1 class="brand-title">Grace App Hub</h1>
+
+        <p class="brand-subtitle">
+            Create your account and get access to all Grace tools — OTP, mailbox, and AI assistant.
+        </p>
+
     </div>
+
+</div>
 
     <div class="auth-form-panel">
         <div class="card fade-in">

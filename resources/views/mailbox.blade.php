@@ -4,7 +4,10 @@
 @section('content')
 <div class="mailbox">
     <aside class="sidebar">
-        <div class="brand">🐝 Grace</div>
+       <div class="brand">
+    <img src="{{ asset('images/computer-security.gif') }}" alt="Icon" class="brand-icon">
+    <span>Grace App Hub</span>
+</div>
 
         <button class="compose-btn" onclick="openCompose()">+ Compose</button>
 
@@ -26,7 +29,7 @@
         <header class="topbar">
             <div>
                 <h2 id="mailTitle">Inbox</h2>
-                <small style="color:var(--muted)">{{ Auth::user()->email }}</small>
+                <small style="color:var(--muted)">{{ auth()->user()->email }}</small>
             </div>
             <input id="searchMail" placeholder="Search mail…" onkeyup="filterMail()">
         </header>

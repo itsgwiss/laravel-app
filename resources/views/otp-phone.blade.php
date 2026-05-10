@@ -3,12 +3,20 @@
 
 @section('content')
 <nav class="topnav">
-    <a href="{{ route('dashboard') }}" class="brand" style="text-decoration:none">🐝 Grace</a>
+    <div class="brand">
+    <img src="{{ asset('images/computer-security.gif') }}" alt="Icon" class="brand-icon">
+    <span>Grace App Hub</span>
+</div>
 </nav>
 
 <div class="center-screen" style="min-height: calc(100vh - 58px)">
     <div class="card fade-in">
-        <div class="brand">📱 Phone Verification</div>
+        <h1>
+    <span class="page-icon">
+        <img src="{{ asset('images/hand-holding-smartphone-smart-home.gif') }}" alt="Icon">
+    </span>
+    Phone Verification
+</h1>
         <h1>Send OTP via SMS</h1>
         <p class="muted">Enter your phone number to receive a 6-digit code.</p>
 
