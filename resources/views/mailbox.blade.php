@@ -1,12 +1,12 @@
 @extends('layouts.app')
-@section('title', 'Mailbox — Grace')
+@section('title', 'Mailbox — RepoHive')
 
 @section('content')
 <div class="mailbox">
     <aside class="sidebar">
        <div class="brand">
     <img src="{{ asset('images/computer-security.gif') }}" alt="Icon" class="brand-icon">
-    <span>Grace App Hub</span>
+    <span>RepoHive</span>
 </div>
 
         <button class="compose-btn" onclick="openCompose()">+ Compose</button>

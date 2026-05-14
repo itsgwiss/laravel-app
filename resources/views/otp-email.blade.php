@@ -1,11 +1,11 @@
 @extends('layouts.app')
-@section('title', 'Email OTP — Grace')
+@section('title', 'Email OTP — RepoHive')
 
 @section('content')
 <nav class="topnav">
     <div class="brand">
     <img src="{{ asset('images/computer-security.gif') }}" alt="Icon" class="brand-icon">
-    <span>Grace App Hub</span>
+    <span>RepoHive</span>
 </div>
 </nav>
 

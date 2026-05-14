@@ -1331,6 +1331,29 @@ hr {
 
     width: 100%;
 }
+.otp-box {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 1.5rem 0;
+}
+
+.otp {
+    width: 48px;
+    height: 56px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.otp:focus {
+    border-color: #e879a0;
+    box-shadow: 0 0 0 3px rgba(232, 121, 160, 0.2);
+}
 
 
 form {

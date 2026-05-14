@@ -1,11 +1,11 @@
 @extends('layouts.app')
-@section('title', 'Grace App Hub')
+@section('title', 'RepoHive')
 
 @section('content')
 <nav class="topnav">
     <div class="brand">
     <img src="{{ asset('images/computer-security.gif') }}" alt="Icon" class="brand-icon">
-    <span>Grace App Hub</span>
+    <span>RepoHive</span>
 </div>
     <div class="nav-actions">
         <span class="user-badge">👤 {{ auth()->user()->name }}</span>
@@ -20,7 +20,7 @@
     <div class="card fade-in" style="max-width:480px">
         <div class="brand">
     <img src="{{ asset('images/computer-security.gif') }}" alt="Icon" class="brand-icon">
-    <span>Grace App Hub</span>
+    <span>RepoHive</span>
 </div>
 
         <h1>Welcome back, {{ auth()->user()->name }}.</h1>
@@ -63,7 +63,7 @@
         <img src="{{ asset('images/ai-assistant.gif') }}" alt="AI Chatbot">
     </span>
     <span class="name">AI Chatbot</span>
-    <span class="sub">Grace AI</span>
+    <span class="sub">RepoHive AI</span>
 </a>
         </div>
 

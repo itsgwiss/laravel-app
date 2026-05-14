@@ -41,4 +41,9 @@ return [
         'from'  => env('TWILIO_FROM'),
     ],
 
+    'semaphore' => [
+    'key'    => env('SEMAPHORE_API_KEY'),
+    'sender' => env('SEMAPHORE_SENDER', 'SEMAPHORE'),
+],
+
 ];

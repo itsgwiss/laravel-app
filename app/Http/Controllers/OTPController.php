@@ -3,68 +3,50 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class OTPController extends Controller
 {
     // ── Views ────────────────────────────────────────────
 
-    public function dashboard()
-    {
-        return view('dashboard');
-    }
+    public function dashboard()    { return view('dashboard'); }
+    public function phone()        { return view('otp-phone'); }
+    public function email()        { return view('otp-email'); }
+    public function showValidate() { return view('validate-otp'); }
 
-    public function phone()
-    {
-        return view('otp-phone');
-    }
+    // ── Generate + cache a 6-digit OTP (10 min) ──────────
 
-    public function email()
-    {
-        return view('otp-email');
-    }
-
-    public function showValidate()
-    {
-        return view('validate-otp');
-    }
-
-    // ── Actions ──────────────────────────────────────────
-
-    /**
-     * Generate and store a 6-digit OTP in cache (10 min TTL).
-     */
     private function generateOtp(string $key): string
     {
         $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        Cache::put("otp:{$key}", $code, now()->addMinutes(10));
+        Cache::put('otp:' . $key, $code, now()->addMinutes(10));
         return $code;
     }
 
-    /**
-     * Send OTP via email.
-     */
+    // ── Send OTP via EMAIL (real Gmail SMTP) ──────────────
+
     public function sendEmail(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-        ]);
+        $request->validate(['email' => 'required|email']);
 
         $email = $request->input('email');
         $code  = $this->generateOtp($email);
 
-        // Send the OTP email
-        Mail::raw(
-            "Your Grace verification code is: {$code}\n\nThis code expires in 10 minutes.",
-            function ($m) use ($email) {
-                $m->to($email)->subject('Your Grace OTP Code');
-            }
-        );
-
-        Log::info("OTP for {$email}: {$code}"); // visible in storage/logs/laravel.log
+        try {
+            Mail::raw(
+                "Your Grace verification code is: {$code}\n\nThis code expires in 10 minutes.",
+                function ($m) use ($email) {
+                    $m->to($email)->subject('Your Grace OTP Code');
+                }
+            );
+        } catch (\Throwable $e) {
+            Log::error('Email OTP failed: ' . $e->getMessage());
+            return redirect()->back()
+                ->withErrors(['email' => 'Failed to send email. Check your MAIL settings in .env.']);
+        }
 
         return redirect()
             ->route('otp.validate')
@@ -72,9 +54,8 @@ class OTPController extends Controller
             ->with('otp_target', $email);
     }
 
-    /**
-     * Send OTP via SMS (stub — integrate Twilio/Vonage here).
-     */
+    // ── Send OTP via SMS (real Semaphore API) ─────────────
+
     public function sendSms(Request $request)
     {
         $request->validate([
@@ -84,12 +65,25 @@ class OTPController extends Controller
         $phone = $request->input('phone');
         $code  = $this->generateOtp($phone);
 
-        // TODO: Replace with real SMS provider (Twilio, Vonage, etc.)
-        // Example (Twilio):
-        //   $twilio = new \Twilio\Rest\Client(env('TWILIO_SID'), env('TWILIO_TOKEN'));
-        //   $twilio->messages->create($phone, ['from' => env('TWILIO_FROM'), 'body' => "Your code: {$code}"]);
+        try {
+            $response = Http::asForm()->post('https://api.semaphore.co/api/v4/messages', [
+                'apikey'     => config('services.semaphore.key'),
+                'number'     => $phone,
+                'message'    => "Your Grace code: {$code}. Expires in 10 minutes.",
+                'sendername' => config('services.semaphore.sender'),
+            ]);
 
-        Log::info("SMS OTP for {$phone}: {$code}");
+            if (! $response->successful()) {
+                Log::error('Semaphore SMS failed: ' . $response->body());
+                return redirect()->back()
+                    ->withErrors(['phone' => 'Failed to send SMS. Check your Semaphore API key.']);
+            }
+
+        } catch (\Throwable $e) {
+            Log::error('SMS OTP exception: ' . $e->getMessage());
+            return redirect()->back()
+                ->withErrors(['phone' => 'SMS service unavailable. Try again later.']);
+        }
 
         return redirect()
             ->route('otp.validate')
@@ -97,45 +91,39 @@ class OTPController extends Controller
             ->with('otp_target', $phone);
     }
 
-    /**
-     * Verify the submitted OTP.
-     */
+    // ── Verify the submitted OTP ──────────────────────────
+
     public function verify(Request $request)
     {
-        $request->validate([
-            'otp' => 'required|digits:6',
-        ]);
+        $request->validate(['otp' => 'required|digits:6']);
 
         $submitted = $request->input('otp');
-        $target    = session('otp_target');
 
-        if (!$target) {
-            return redirect()
-                ->route('otp.validate')
+        // Get target from session OR hidden input fallback
+        $target = session('otp_target') ?? $request->input('otp_target');
+
+        if (! $target) {
+            return redirect()->route('otp.validate')
                 ->withErrors(['otp' => 'Session expired. Please request a new OTP.']);
         }
 
-        $cached = Cache::get("otp:{$target}");
+        $cached = Cache::get('otp:' . $target);
 
-        if (!$cached) {
-            return redirect()
-                ->route('otp.validate')
+        if (! $cached) {
+            return redirect()->route('otp.validate')
                 ->withErrors(['otp' => 'OTP has expired. Please request a new one.'])
                 ->with('otp_target', $target);
         }
 
         if ($submitted !== $cached) {
-            return redirect()
-                ->route('otp.validate')
-                ->withErrors(['otp' => 'Invalid code. Please try again.'])
+            return redirect()->route('otp.validate')
+                ->withErrors(['otp' => 'Wrong code. Please try again.'])
                 ->with('otp_target', $target);
         }
 
-        // OTP is valid — clear it
-        Cache::forget("otp:{$target}");
+        Cache::forget('otp:' . $target);
 
-        return redirect()
-            ->route('dashboard')
-            ->with('success', "✓ {$target} successfully verified.");
+        return redirect()->route('dashboard')
+            ->with('success', "✓ {$target} verified successfully!");
     }
 }

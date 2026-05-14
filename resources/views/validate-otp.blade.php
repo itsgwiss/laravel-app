@@ -33,7 +33,7 @@
             @csrf
             {{-- Hidden field assembled by JS --}}
             <input type="hidden" name="otp" id="otpHidden">
-
+            <input type="hidden" name="otp_target" value="{{ session('otp_target') }}"> 
             <div class="otp-box">
                 @for($i = 0; $i < 6; $i++)
                     <input maxlength="1" class="otp" inputmode="numeric" pattern="[0-9]">
@@ -50,6 +50,10 @@
 
 @push('scripts')
 <script>
+    function getOtpValue() {
+    return [...document.querySelectorAll('.otp')]
+        .map(i => i.value).join('');
+}
 function submitOtp(e) {
     const otp = getOtpValue();
     if (otp.length < 6) {
@@ -65,6 +69,14 @@ function submitOtp(e) {
     }
     document.getElementById('otpHidden').value = otp;
 }
+document.querySelectorAll('.otp').forEach((input, idx, inputs) => {
+    input.addEventListener('input', () => {
+        if (input.value && idx < inputs.length - 1) inputs[idx + 1].focus();
+    });
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !input.value && idx > 0) inputs[idx - 1].focus();
+    });
+});
 </script>
 @endpush
 @endsection

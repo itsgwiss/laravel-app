@@ -36,7 +36,7 @@ class ChatbotController extends Controller
                 ])->timeout(20)->post('https://api.anthropic.com/v1/messages', [
                     'model'      => 'claude-haiku-4-5-20251001',
                     'max_tokens' => 512,
-                    'system'     => 'You are Grace, a friendly and helpful AI assistant built into the Grace Apps platform. You help users with OTP verification, mailbox management, account support, and general questions. Be concise, warm, and professional.',
+                    'system'     => 'You are RepoHive AI, a friendly and helpful AI assistant built into the RepoHive platform. You help users with OTP verification, mailbox management, account support, and general questions. Be concise, warm, and professional.',
                     'messages'   => [
                         ['role' => 'user', 'content' => $userMessage],
                     ],
@@ -70,9 +70,9 @@ class ChatbotController extends Controller
             str_contains($msg, 'mailbox')    => "Your mailbox lets you send and receive messages. Click 'Mailbox' on the dashboard to open it.",
             str_contains($msg, 'password')   => "You can reset your password via the 'Forgot Password' link on the login page.",
             str_contains($msg, 'hello')
-                || str_contains($msg, 'hi')  => "Hello! I'm Grace, your AI assistant. How can I help you today?",
+                || str_contains($msg, 'hi')  => "Hello! I'm RepoHive AI, your AI assistant. How can I help you today?",
             str_contains($msg, 'help')       => "I can help with OTP verification, mailbox management, password resets, and general account questions. What do you need?",
-            default                          => "I'm Grace, your assistant. Could you provide more details so I can help you better?",
+            default                          => "I'm RepoHive AI, your assistant. Could you provide more details so I can help you better?",
         };
     }
 }

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Grace AI — Chatbot')
+@section('title', 'RepoHive  AI — Chatbot')
 
 @section('content')
 <div class="chatbot-only-page">
@@ -7,7 +7,7 @@
         <header class="chat-header">
             <div class="ai-orb">🤖</div>
             <div>
-                <h2>Grace AI Assistant</h2>
+                <h2>RepoHive AI Assistant</h2>
                 <small>Online · Ready to help</small>
             </div>
             <a href="{{ route('dashboard') }}" class="chat-back">← Dashboard</a>
@@ -17,7 +17,7 @@
             <div class="chat-message bot show">
                 <div class="avatar">🤖</div>
                 <div class="bubble">
-                    Hi, I'm <strong>Grace</strong> — your AI assistant. I can help with OTP verification, mailbox questions, account support, and more. How can I help you today?
+                    Hi, I'm <strong>RepoHive AI</strong> — your AI assistant. I can help with OTP verification, mailbox questions, account support, and more. How can I help you today?
                 </div>
             </div>
         </section>
