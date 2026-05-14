@@ -54,43 +54,44 @@ class OTPController extends Controller
             ->with('otp_target', $email);
     }
 
-    // ── Send OTP via SMS (real Semaphore API) ─────────────
+    // ── Send OTP via SMS (real RepoHive API) ─────────────
 
-    public function sendSms(Request $request)
-    {
-        $request->validate([
-            'phone' => ['required', 'regex:/^[0-9]{10,15}$/'],
+  public function sendSms(Request $request)
+{
+    $request->validate([
+        'phone' => ['required', 'regex:/^[0-9]{10,15}$/'],
+    ]);
+
+    $phone = $request->input('phone');
+    $code  = $this->generateOtp($phone);
+
+    try {
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . config('services.repohive.key'),
+            'Content-Type'  => 'application/json',
+            'Accept'        => 'application/json',
+        ])->post('https://repohive.com/api/messages', [
+            'phone'   => $phone,
+            'message' => "Your OTP code is: {$code}. Expires in 10 minutes.",
         ]);
 
-        $phone = $request->input('phone');
-        $code  = $this->generateOtp($phone);
-
-        try {
-            $response = Http::asForm()->post('https://api.semaphore.co/api/v4/messages', [
-                'apikey'     => config('services.semaphore.key'),
-                'number'     => $phone,
-                'message'    => "Your Grace code: {$code}. Expires in 10 minutes.",
-                'sendername' => config('services.semaphore.sender'),
-            ]);
-
-            if (! $response->successful()) {
-                Log::error('Semaphore SMS failed: ' . $response->body());
-                return redirect()->back()
-                    ->withErrors(['phone' => 'Failed to send SMS. Check your Semaphore API key.']);
-            }
-
-        } catch (\Throwable $e) {
-            Log::error('SMS OTP exception: ' . $e->getMessage());
+        if (! $response->successful()) {
+            Log::error('RepoHive SMS failed: ' . $response->body());
             return redirect()->back()
-                ->withErrors(['phone' => 'SMS service unavailable. Try again later.']);
+                ->withErrors(['phone' => 'Failed to send SMS. ' . $response->json('message', 'Check your API key.')]);
         }
 
-        return redirect()
-            ->route('otp.validate')
-            ->with('success', "OTP sent to {$phone}.")
-            ->with('otp_target', $phone);
+    } catch (\Throwable $e) {
+        Log::error('SMS OTP exception: ' . $e->getMessage());
+        return redirect()->back()
+            ->withErrors(['phone' => 'SMS service unavailable. Try again later.']);
     }
 
+    return redirect()
+        ->route('otp.validate')
+        ->with('success', "OTP sent to {$phone}.")
+        ->with('otp_target', $phone);
+}
     // ── Verify the submitted OTP ──────────────────────────
 
     public function verify(Request $request)

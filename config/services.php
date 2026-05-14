@@ -41,9 +41,8 @@ return [
         'from'  => env('TWILIO_FROM'),
     ],
 
-    'semaphore' => [
-    'key'    => env('SEMAPHORE_API_KEY'),
-    'sender' => env('SEMAPHORE_SENDER', 'SEMAPHORE'),
+    'repohive' => [
+    'key' => env('REPOHIVE_SMS_API_TOKEN'),
 ],
 
 ];
