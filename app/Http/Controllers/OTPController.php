@@ -37,9 +37,9 @@ class OTPController extends Controller
 
         try {
             Mail::raw(
-                "Your Grace verification code is: {$code}\n\nThis code expires in 10 minutes.",
+                "Your RepoHive verification code is: {$code}\n\nThis code expires in 10 minutes.",
                 function ($m) use ($email) {
-                    $m->to($email)->subject('Your Grace OTP Code');
+                    $m->to($email)->subject('Your RepoHive OTP Code');
                 }
             );
         } catch (\Throwable $e) {
@@ -54,7 +54,7 @@ class OTPController extends Controller
             ->with('otp_target', $email);
     }
 
-    // ── Send OTP via SMS (real RepoHive API) ─────────────
+    // ── Send OTP via SMS  ─────────────
 
   public function sendSms(Request $request)
 {
