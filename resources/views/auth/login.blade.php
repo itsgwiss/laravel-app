@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Sign in — Grace')
+@section('title', 'Sign in — RepoHive')
 
 @php
     use Illuminate\Support\Facades\Route;
@@ -8,7 +8,7 @@
 @section('content')
 <div class="auth-split">
     <div class="auth-brand-panel">
-        <div class="brand">Grace App Hub</div>
+        <div class="brand">RepoHive</div>
         <div class="tagline">Your unified<br>workspace.</div>
         <p>Authentication, OTP verification, mailbox, and AI assistant — all in one place.</p>
     </div>

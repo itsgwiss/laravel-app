@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Register — Grace')
+@section('title', 'Register — RepoHive')
 
 @section('content')
 <div class="brand-block">
@@ -8,10 +8,10 @@
 
     <div class="brand-text">
 
-        <h1 class="brand-title">Grace App Hub</h1>
+        <h1 class="brand-title">RepoHive</h1>
 
         <p class="brand-subtitle">
-            Create your account and get access to all Grace tools — OTP, mailbox, and AI assistant.
+            Create your account and get access to all RepoHive tools — OTP, mailbox, and AI assistant.
         </p>
 
     </div>

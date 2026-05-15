@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Forgot Password — Grace')
+@section('title', 'Forgot Password — RepoHive')
 
 @section('content')
 <div class="center-screen">

@@ -1,9 +1,9 @@
 @extends('layouts.app')
-@section('title', 'Validate OTP — Grace')
+@section('title', 'Validate OTP — RepoHive')
 
 @section('content')
 <nav class="topnav">
-    <a href="{{ route('dashboard') }}" class="brand" style="text-decoration:none">🐝 Grace</a>
+    <a href="{{ route('dashboard') }}" class="brand" style="text-decoration:none">RepoHive</a>
 </nav>
 
 <div class="center-screen" style="min-height: calc(100vh - 58px)">
