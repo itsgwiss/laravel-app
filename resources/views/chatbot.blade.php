@@ -250,7 +250,6 @@
 
     function quickSend(text) {
         chatInput.value = text;
-        quickPrompts.style.display = 'none';
         sendChat();
     }
 
@@ -259,7 +258,6 @@
         if (!text || sendBtn.disabled) return;
 
         chatInput.value = '';
-        quickPrompts.style.display = 'none';
         appendMessage('user', text);
         setLoading(true);
 

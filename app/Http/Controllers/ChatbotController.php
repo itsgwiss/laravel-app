@@ -24,36 +24,36 @@ class ChatbotController extends Controller
 
         $userMessage = $request->input('message');
 
-        // Build full messages array: history + new user message
+        // Build full messages array: system + history + new user message
         $messages = collect($request->input('history', []))
             ->map(fn($m) => ['role' => $m['role'], 'content' => $m['content']])
             ->push(['role' => 'user', 'content' => $userMessage])
+            ->prepend(['role' => 'system', 'content' => $this->systemPrompt()])
             ->values()
             ->toArray();
 
-        $apiKey = config('services.anthropic.key');
+        $apiKey = config('services.groq.key');
 
         if ($apiKey) {
             try {
                 $response = Http::withHeaders([
-                    'x-api-key'         => $apiKey,
-                    'anthropic-version' => '2023-06-01',
-                    'Content-Type'      => 'application/json',
-                ])->timeout(30)->post('https://api.anthropic.com/v1/messages', [
-                    'model'      => 'claude-haiku-4-5-20251001',
-                    'max_tokens' => 512,
-                    'system'     => $this->systemPrompt(),
-                    'messages'   => $messages,
+                    'Authorization' => 'Bearer ' . $apiKey,
+                    'Content-Type'  => 'application/json',
+                ])->timeout(30)->post('https://api.groq.com/openai/v1/chat/completions', [
+                    'model'       => 'llama-3.3-70b-versatile',
+                    'max_tokens'  => 512,
+                    'temperature' => 0.7,
+                    'messages'    => $messages,
                 ]);
 
                 if ($response->successful()) {
-                    $content = $response->json('content.0.text');
+                    $content = $response->json('choices.0.message.content');
                     if ($content) {
                         return response()->json(['reply' => $content]);
                     }
                 }
 
-                Log::warning('Anthropic API error: ' . $response->body());
+                Log::warning('Groq API error: ' . $response->body());
             } catch (\Throwable $e) {
                 Log::error('Chatbot API exception: ' . $e->getMessage());
             }
@@ -70,15 +70,17 @@ class ChatbotController extends Controller
     {
         return
             "You are RepoHive AI, the built-in assistant for the RepoHive platform. You are friendly, concise, and helpful.\n\n" .
-            "## About RepoHive\n" .
-            "RepoHive is a platform that [DESCRIBE WHAT REPOHIVE DOES].\n" .
-            "It is designed for [YOUR TARGET USERS].\n\n" .
-            "## Features\n" .
-            "- Dashboard: Central hub where users access all features after logging in.\n" .
-            "- OTP Verification: Users can verify their identity via a one-time password sent by Email or SMS.\n" .
-            "- Mailbox: An in-app messaging system to send and receive messages within the platform.\n" .
-            "- Profile Management: Users can edit their name, email, and password from the profile page.\n" .
-            "- [ADD MORE FEATURES HERE]\n\n" .
+           "## About RepoHive\n" .
+           "RepoHive is a web platform that provides secure user authentication and communication tools.\n" .
+           "It is designed for users who need OTP-based identity verification, in-app messaging, and account management.\n\n" .
+           "## Features\n" .
+           "- Dashboard: The main hub where users access all RepoHive features after logging in.\n" .
+           "- Email OTP: Users can request a one-time password sent to their email to verify their identity.\n" .
+           "- SMS OTP: Users can request a one-time password sent to their phone number via SMS.\n" .
+           "- OTP Validation: Users enter the received OTP code to complete verification.\n" .
+           "- Mailbox: An in-app messaging system to send and receive messages within the platform.\n" . 
+           "- Profile Management: Users can update their name, email, and password from their profile page.\n" .
+           "- Authentication: Secure login, registration, email verification, and password reset.\n\n" .
             "## Common Questions\n" .
             "Q: How do I send an OTP?\n" .
             "A: From your dashboard, click Email OTP or SMS OTP, enter your contact info, and a code will be sent. Enter the code on the Validate OTP page.\n\n" .
@@ -86,7 +88,6 @@ class ChatbotController extends Controller
             "A: Go to the login page and click Forgot Password. A reset link will be sent to your email.\n\n" .
             "Q: Where is my inbox?\n" .
             "A: Click Mailbox on the dashboard to open your in-app inbox.\n\n" .
-            "[ADD MORE Q&A HERE]\n\n" .
             "## Rules\n" .
             "- Only answer questions related to RepoHive and its features.\n" .
             "- If you do not know something, say: I don't have that info yet — please contact our support team.\n" .

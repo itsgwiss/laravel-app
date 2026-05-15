@@ -41,8 +41,8 @@ return [
         'from'  => env('TWILIO_FROM'),
     ],
 
-    'repohive' => [
-    'key' => env('REPOHIVE_SMS_API_TOKEN'),
+    'groq' => [
+    'key' => env('GROQ_API_KEY'),
 ],
 
 ];
