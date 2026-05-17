@@ -2,12 +2,6 @@
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Third Party Services
-    |--------------------------------------------------------------------------
-    */
-
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],
@@ -29,12 +23,12 @@ return [
         ],
     ],
 
-    // ── Anthropic Claude API ──────────────────────────────────
+    
     'anthropic' => [
         'key' => env('ANTHROPIC_API_KEY'),
     ],
 
-    // ── Twilio SMS ────────────────────────────────────────────
+   
     'twilio' => [
         'sid'   => env('TWILIO_SID'),
         'token' => env('TWILIO_TOKEN'),
@@ -44,5 +38,7 @@ return [
     'groq' => [
     'key' => env('GROQ_API_KEY'),
 ],
-
+    'repohive' => [
+    'key' => env('REPOHIVE_SMS_API_TOKEN'),
+],
 ];

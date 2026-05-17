@@ -29,6 +29,26 @@
         @if($errors->any())
             <div class="alert error">{{ $errors->first() }}</div>
         @endif
+        
+@if(session('confirm_reverify'))
+<div class="reverify-box">
+    <div class="reverify-icon">✅</div>
+    <p class="reverify-title">Already Verified</p>
+    <p class="reverify-sub">
+        <strong>{{ session('reverify_target') }}</strong> has already been verified.
+        Do you want to re-verify it?
+    </p>
+    <form method="POST" action="{{ session('confirm_reverify') === 'email' ? route('otp.sendEmail') : route('otp.sendSms') }}">
+        @csrf
+        <input type="hidden" name="{{ session('confirm_reverify') === 'email' ? 'email' : 'phone' }}" value="{{ session('reverify_target') }}">
+        <input type="hidden" name="force_reverify" value="1">
+        <div class="reverify-actions">
+            <button type="submit" class="btn primary">Yes, re-verify</button>
+            <a href="{{ route('dashboard') }}" class="btn secondary">No, go back</a>
+        </div>
+    </form>
+</div>
+@endif
 
         <form method="POST" action="{{ route('otp.sendEmail') }}">
             @csrf

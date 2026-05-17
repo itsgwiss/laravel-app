@@ -26,14 +26,36 @@ class OTPController extends Controller
         return $code;
     }
 
-    // ── Send OTP via EMAIL (real Gmail SMTP) ──────────────
+    // ── Check if email was already verified ──────────────
+
+    private function isEmailVerified(string $email): bool
+    {
+        return Cache::has('verified:email:' . $email);
+    }
+
+    private function isPhoneVerified(string $phone): bool
+    {
+        return Cache::has('verified:phone:' . $phone);
+    }
+
+    // ── Send OTP via EMAIL ────────────────────────────────
 
     public function sendEmail(Request $request)
     {
         $request->validate(['email' => 'required|email']);
 
-        $email = $request->input('email');
-        $code  = $this->generateOtp($email);
+        $email      = $request->input('email');
+        $forceResend = $request->boolean('force_reverify');
+
+        // Already verified — ask for confirmation unless forced
+        if ($this->isEmailVerified($email) && ! $forceResend) {
+            return back()
+                ->withInput()
+                ->with('confirm_reverify', 'email')
+                ->with('reverify_target', $email);
+        }
+
+        $code = $this->generateOtp($email);
 
         try {
             Mail::raw(
@@ -54,44 +76,55 @@ class OTPController extends Controller
             ->with('otp_target', $email);
     }
 
-    // ── Send OTP via SMS  ─────────────
+    // ── Send OTP via SMS ──────────────────────────────────
 
-  public function sendSms(Request $request)
-{
-    $request->validate([
-        'phone' => ['required', 'regex:/^[0-9]{10,15}$/'],
-    ]);
-
-    $phone = $request->input('phone');
-    $code  = $this->generateOtp($phone);
-
-    try {
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . config('services.repohive.key'),
-            'Content-Type'  => 'application/json',
-            'Accept'        => 'application/json',
-        ])->post('https://repohive.com/api/messages', [
-            'phone'   => $phone,
-            'message' => "Your OTP code is: {$code}. Expires in 10 minutes.",
+    public function sendSms(Request $request)
+    {
+        $request->validate([
+            'phone' => ['required', 'regex:/^[0-9]{10,15}$/'],
         ]);
 
-        if (! $response->successful()) {
-            Log::error('RepoHive SMS failed: ' . $response->body());
-            return redirect()->back()
-                ->withErrors(['phone' => 'Failed to send SMS. ' . $response->json('message', 'Check your API key.')]);
+        $phone       = $request->input('phone');
+        $forceResend = $request->boolean('force_reverify');
+
+        // Already verified — ask for confirmation unless forced
+        if ($this->isPhoneVerified($phone) && ! $forceResend) {
+            return back()
+                ->withInput()
+                ->with('confirm_reverify', 'phone')
+                ->with('reverify_target', $phone);
         }
 
-    } catch (\Throwable $e) {
-        Log::error('SMS OTP exception: ' . $e->getMessage());
-        return redirect()->back()
-            ->withErrors(['phone' => 'SMS service unavailable. Try again later.']);
+        $code = $this->generateOtp($phone);
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer RDfcDtc9R4c4vZDQUhtIRkzwDzO7hjdfHaZsI1c1de4ca007',
+                'Content-Type'  => 'application/json',
+                'Accept'        => 'application/json',
+            ])->post('https://repohive.com/api/messages', [
+                'phone'   => $phone,
+                'message' => "Your OTP code is: {$code}. Expires in 10 minutes.",
+            ]);
+
+            if (! $response->successful()) {
+                Log::error('RepoHive SMS failed: ' . $response->body());
+                return redirect()->back()
+                    ->withErrors(['phone' => 'Failed to send SMS. ' . $response->json('message', 'Check your API key.')]);
+            }
+
+        } catch (\Throwable $e) {
+            Log::error('SMS OTP exception: ' . $e->getMessage());
+            return redirect()->back()
+                ->withErrors(['phone' => 'SMS service unavailable. Try again later.']);
+        }
+
+        return redirect()
+            ->route('otp.validate')
+            ->with('success', "OTP sent to {$phone}.")
+            ->with('otp_target', $phone);
     }
 
-    return redirect()
-        ->route('otp.validate')
-        ->with('success', "OTP sent to {$phone}.")
-        ->with('otp_target', $phone);
-}
     // ── Verify the submitted OTP ──────────────────────────
 
     public function verify(Request $request)
@@ -99,9 +132,7 @@ class OTPController extends Controller
         $request->validate(['otp' => 'required|digits:6']);
 
         $submitted = $request->input('otp');
-
-        // Get target from session OR hidden input fallback
-        $target = session('otp_target') ?? $request->input('otp_target');
+        $target    = session('otp_target') ?? $request->input('otp_target');
 
         if (! $target) {
             return redirect()->route('otp.validate')
@@ -123,6 +154,10 @@ class OTPController extends Controller
         }
 
         Cache::forget('otp:' . $target);
+
+        // Mark as verified in cache for 30 days
+        $prefix = filter_var($target, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+        Cache::put('verified:' . $prefix . ':' . $target, true, now()->addDays(30));
 
         return redirect()->route('dashboard')
             ->with('success', "✓ {$target} verified successfully!");

@@ -25,10 +25,6 @@
             <div class="alert error">{{ $errors->first() }}</div>
         @endif
 
-        @if(config('app.debug'))
-            <div class="alert info">🧪 Dev mode — check your log for the OTP code.</div>
-        @endif
-
         <form method="POST" action="{{ route('otp.verify') }}" id="otpForm">
             @csrf
             {{-- Hidden field assembled by JS --}}
