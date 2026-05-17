@@ -71,11 +71,7 @@
 
         <p class="note">
             Logged in as <strong>{{ auth()->user()->email }}</strong>
-            @if(auth()->user()->hasVerifiedEmail())
-                · <span style="color:var(--success)">✓ Verified</span>
-            @else
-                · <span style="color:var(--error)">Email not verified</span>
-            @endif
+            
         </p>
     </div>
 </div>

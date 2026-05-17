@@ -6,6 +6,7 @@ use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Models\Message;
+use App\Models\User;
 
 
 // ── Root redirect ──────────────────────────────────────
@@ -67,7 +68,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     return response()->json(['body' => 'Unauthorized.'], 403);
 })->middleware('auth');
 
-    
+   Route::get('/verify-user/{email}', function ($email) {
+    $user = User::where('email', $email)->first();
+    if ($user) {
+        $user->email_verified_at = now();
+        $user->save();
+        return "User {$email} has been verified!";
+    }
+    return "User not found!";
+})->middleware('auth'); 
 });
 
 // ── Breeze auth routes ─────────────────────────────────
