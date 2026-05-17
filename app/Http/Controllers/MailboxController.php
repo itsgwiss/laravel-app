@@ -92,7 +92,7 @@ class MailboxController extends Controller
             // *** SEND REAL EMAIL VIA GMAIL SMTP ***
             try {
                 $this->sendRealEmail($request, $user);
-                $emailStatus = 'Email sent to the recipient\'s.';
+                $emailStatus = 'Email sent to the recipient.';
             } catch (\Exception $e) {
                 Log::error('Email sending failed: ' . $e->getMessage());
                 $emailStatus = 'Message saved but email delivery failed.';

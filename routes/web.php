@@ -27,14 +27,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/otp/send-sms',   [OTPController::class, 'sendSms'])->name('otp.sendSms');
     Route::post('/otp/verify',     [OTPController::class, 'verify'])->name('otp.verify');
 
-    // Mailbox - IMPORTANT: Specific routes MUST come BEFORE routes with {message} parameter
-    // Utility routes (no {message} parameter) - Put these FIRST
+    // Mailbox 
     Route::get('/mailbox/unread-count', [MailboxController::class, 'getUnreadCount'])->name('mailbox.unread-count');
     Route::post('/mailbox/bulk-read', [MailboxController::class, 'markBulkAsRead'])->name('mailbox.bulk-read');
     Route::post('/mailbox/bulk-delete', [MailboxController::class, 'bulkDestroy'])->name('mailbox.bulk-destroy');
     Route::post('/mailbox/send', [MailboxController::class, 'send'])->name('mailbox.send')->middleware('throttle:10,1');
     
-    // Routes with {message} parameter - Put these NEXT
+    // Routes 
     Route::post('/mailbox/reply/{message}', [MailboxController::class, 'reply'])->name('mailbox.reply')->middleware('throttle:10,1');
     Route::put('/mailbox/read/{message}', [MailboxController::class, 'markAsRead'])->name('mailbox.mark-read');
     Route::delete('/mailbox/{message}', [MailboxController::class, 'destroy'])->name('mailbox.destroy');
