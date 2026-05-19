@@ -227,7 +227,7 @@ class MailboxController extends Controller
 
             $user = Auth::user();
 
-            // Prepare reply subject (add Re: if not already there)
+        
             $subject = $originalMessage->subject;
             if (!str_starts_with($subject, 'Re:')) {
                 $subject = 'Re: ' . $subject;
