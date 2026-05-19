@@ -38,24 +38,15 @@ class OTPController extends Controller
         return Cache::has('verified:phone:' . $phone);
     }
 
-    // ── Resolve greeting name ─────────────────────────────
-
-    private function greeting(?string $name): string
-    {
-        return $name ? trim($name) : 'there';
-    }
-
     // ── Send OTP via EMAIL ────────────────────────────────
 
     public function sendEmail(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
-            'name'  => 'nullable|string|max:100',
         ]);
 
         $email       = $request->input('email');
-        $name        = $this->greeting($request->input('name'));
         $forceResend = $request->boolean('force_reverify');
 
         // Already verified — ask for confirmation unless forced
@@ -70,15 +61,15 @@ class OTPController extends Controller
 
         try {
             Mail::raw(
-                "Hi, {$name}! Welcome to RepoHive! 🎉\n\n" .
-                "We're glad to have you on board. To complete your verification, use the one-time code below:\n\n" .
+                "Welcome to RepoHive! 🎉\n\n" .
+                "To complete your verification, use the one-time code below:\n\n" .
                 "  🔐 Your OTP Code: {$code}\n\n" .
                 "This code expires in 10 minutes.\n\n" .
                 "⚠️  Please do not share this code with anyone — RepoHive staff will never ask for your OTP.\n\n" .
                 "If you did not request this code, you can safely ignore this message.\n\n" .
                 "— The RepoHive Team",
-                function ($m) use ($email, $name) {
-                    $m->to($email)->subject("Hi {$name}, here's your RepoHive Verification Code");
+                function ($m) use ($email) {
+                    $m->to($email)->subject('Your RepoHive Verification Code');
                 }
             );
         } catch (\Throwable $e) {
@@ -99,11 +90,9 @@ class OTPController extends Controller
     {
         $request->validate([
             'phone' => ['required', 'regex:/^[0-9]{10,15}$/'],
-            'name'  => 'nullable|string|max:100',
         ]);
 
         $phone       = $request->input('phone');
-        $name        = $this->greeting($request->input('name'));
         $forceResend = $request->boolean('force_reverify');
 
         // Already verified — ask for confirmation unless forced
@@ -123,7 +112,7 @@ class OTPController extends Controller
                 'Accept'        => 'application/json',
             ])->post('https://repohive.com/api/messages', [
                 'phone'   => $phone,
-                'message' => "Hi, {$name}! Welcome to RepoHive! Your one-time verification code is: {$code}. Expires in 10 minutes. Do NOT share this code with anyone.",
+                'message' => "Welcome to RepoHive! Your OTP: {$code}. Expires in 10 mins. Do not share this code.",
             ]);
 
             if (! $response->successful()) {
