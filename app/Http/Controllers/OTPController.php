@@ -112,7 +112,7 @@ class OTPController extends Controller
                 'Accept'        => 'application/json',
             ])->post('https://repohive.com/api/messages', [
                 'phone'   => $phone,
-                'message' => "Welcome to RepoHive! Your OTP: {$code}. Expires in 10 mins. Do not share this code.",
+                'message' => "[RepoHive] Welcome! Your OTP is: {$code}. Expires in 10 mins. Do not share this code.",
             ]);
 
             if (! $response->successful()) {
@@ -166,6 +166,42 @@ class OTPController extends Controller
         // Mark as verified in cache for 30 days
         $prefix = filter_var($target, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
         Cache::put('verified:' . $prefix . ':' . $target, true, now()->addDays(30));
+
+        // Send confirmation SMS if the verified target is a phone number
+        if ($prefix === 'phone') {
+            try {
+                Http::withHeaders([
+                    'Authorization' => 'Bearer RDfcDtc9R4c4vZDQUhtIRkzwDzO7hjdfHaZsI1c1de4ca007',
+                    'Content-Type'  => 'application/json',
+                    'Accept'        => 'application/json',
+                ])->post('https://repohive.com/api/messages', [
+                    'phone'   => $target,
+                    'message' => "You're verified! Welcome to RepoHive!\n\nYour account has been successfully verified. We're glad to have you with us.\n\n- RepoHive Team",
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('Confirmation SMS failed: ' . $e->getMessage());
+                // Non-blocking — verification still succeeds even if this SMS fails
+            }
+        }
+
+        // Send confirmation email if the verified target is an email address
+        if ($prefix === 'email') {
+            try {
+                Mail::raw(
+                    "You're verified! Welcome to RepoHive! 🎉\n\n" .
+                    "Your email address has been successfully verified.\n\n" .
+                    "We're glad to have you with us. You can now enjoy full access to RepoHive.\n\n" .
+                    "If you have any questions, feel free to reach out to our support team.\n\n" .
+                    "— The RepoHive Team",
+                    function ($m) use ($target) {
+                        $m->to($target)->subject("✅ You're Verified — Welcome to RepoHive!");
+                    }
+                );
+            } catch (\Throwable $e) {
+                Log::error('Confirmation email failed: ' . $e->getMessage());
+                // Non-blocking — verification still succeeds even if this email fails
+            }
+        }
 
         return redirect()->route('dashboard')
             ->with('success', "✓ {$target} verified successfully!");
